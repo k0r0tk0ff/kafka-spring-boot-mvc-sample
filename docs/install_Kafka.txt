@@ -1,0 +1,87 @@
+Использованы материалы:
+https://habr.com/ru/post/440400/
+https://rmoff.net/2018/08/02/kafka-listeners-explained/
+а также комменты в самих конфигах для kafka - /opt/kafka/config/server.properties
+там достаточно хорошо описано, за что отвечает тот или иной параметр.
+
+###############################     Настройки Apache Kafka  ###################################
+Используемая ОС:
+# uname -a
+Linux linux.k0r0tk0ff 4.14.35-1902.3.2.el7uek.x86_64 #2 SMP Tue Jul 30 03:59:02 GMT 2019 x86_64 x86_64 x86_64 GNU/Linux
+# cat /etc/redhat-release
+Red Hat Enterprise Linux Server release 7.7 (Maipo)
+
+0) Прописываем hostname
+(обязательно, необходимо для автоматического определения endpoint-a при подключении consumers and producers)
+hostnamectl set-hostname linux.k0r0tk0ff
+
+1) На машине, откуда будем ходить в kafka в hosts прописываем
+xxx.xxx.xx.xx linux.k0r0tk0ff
+(В случае наличия DNS необходимо внести полноценную запись)
+
+2) Скачиваем и распаковываем дистрибутив kafka_2.12-2.6.0.tgz
+cd /opt
+wget https://apache-mirror.rbc.ru/pub/apache/kafka/2.6.0/kafka_2.12-2.6.0.tgz
+mkdir kafka
+tar -xvf kafka_2.12-2.6.0.tgz
+mv kafka_2.12-2.6.0/* kafka/
+rmdir kafka_2.12-2.6.0
+
+3) Правим конфиги (ставим broker.id=1)
+cat /opt/kafka/config/server.properties | grep -v "#" | grep -v ^$
+broker.id=1
+num.network.threads=3
+num.io.threads=8
+socket.send.buffer.bytes=102400
+socket.receive.buffer.bytes=102400
+socket.request.max.bytes=104857600
+log.dirs=/tmp/kafka-logs
+num.partitions=1
+num.recovery.threads.per.data.dir=1
+offsets.topic.replication.factor=1
+transaction.state.log.replication.factor=1
+transaction.state.log.min.isr=1
+log.retention.hours=168
+log.segment.bytes=1073741824
+log.retention.check.interval.ms=300000
+zookeeper.connect=localhost:2181
+zookeeper.connection.timeout.ms=18000
+group.initial.rebalance.delay.ms=0
+
+
+4) Запускаем сервисы zookeeper и kafka (сначала zookeeper, потом kafka)
+/opt/kafka/bin/zookeeper-server-start.sh -daemon /opt/kafka/config/zookeeper.properties
+/opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
+
+Можно еще посмотреть слушаются ли порты -
+netstat -tulpn | grep 9092
+netstat -tulpn | grep 2181
+
+5) Проверяем работу zookeeper
+telnet 127.0.0.1 2181, и даем команду srvr
+Примерный ответ -
+Zookeeper version: 3.5.8-f439ca583e70862c3068a1f2a7d4d068eec33315, built on 05/04/2020 15:53 GMT
+Latency min/avg/max: 0/6/80
+Received: 827
+Sent: 829
+Connections: 3
+Outstanding: 0
+Zxid: 0x8d
+Mode: standalone
+Node count: 134
+
+5) Создаем topic
+/opt/kafka/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+Проверяем, что топик успешно был создан
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server linux.k0r0tk0ff:9092 --list
+
+6) Пробуем писать в topic "test" и читать оттуда
+/opt/kafka/bin/kafka-console-producer.sh --broker-list linux.k0r0tk0ff:9092 --topic test
+/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server linux.k0r0tk0ff:9092 --topic test --from-beginning
+###############################################################################################
+
+Некоторые заметки по использованию:
+1) Если мы хотим вычитать очередь с начала, мы должны дать понять kafka-серверу,
+что мы из группы, которая не читала эти сообщения, т.е. прописать в конфиге нечто вроде -
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Spring Boot Thymeleaf Hello World Example</title>
+
+    <script src="/webjars/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/webjars/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" th:href="@{webjars/bootstrap/4.5.2/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand">SpringBoot 2.3.0 + Apache Kafka</a>
+</nav>
+
+<main role="main" class="container">
+
+    <div class="starter-template">
+        <h2>
+            <span th:text="'Send message:' "></span>
+        </h2>
+    </div>
+
+    <div>
+        <form action="#" class="form-inline" id="sendMessage">
+            <label for="key">key:</label>
+            <input type="text" class="form-control" placeholder="Enter key" id="key" name="key">
+            <label for="messageBody">message:</label>
+            <input type="text" class="form-control" placeholder="Enter message" id="messageBody" name="messageBody">
+            <button type="submit" class="btn btn-primary">Send message</button>
+        </form>
+    </div>
+
+    <h2>
+        <span th:text="'Messages: '"></span>
+    </h2>
+    <ol>
+        <li th:each="message : ${messages}" th:text="${message}"></li>
+    </ol>
+    <script src="/js/misc.js"></script>
+</main>
+<!-- /.container -->
+
+</body>
+</html>

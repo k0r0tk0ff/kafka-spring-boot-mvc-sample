@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "welcome.message",
+      "type": "java.lang.String",
+      "description": "Message, which will be on the web page after the world \"Hello\"."
+  }
+] }
