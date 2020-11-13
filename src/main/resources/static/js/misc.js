@@ -1,36 +1,28 @@
-console.log("Script \"misc.js\" has been success loaded...");
+console.log('Script "misc.js" has been success loaded...');
 
-let CONFIG = (function() {
-    let constants = {
-        'SEND_MESSAGE_URL': '/sendMessage',
-        'ANOTHER_CONST': '2'
-    };
+//######################### Блок констант #####################################################
+const CONFIGURATION = Object.freeze({
+    SEND_MESSAGE_URL: "/sendMessage",
+});
 
-    return {
-        get: function(name) { return constants[name]; }
-    };
-})();
+//##### Обертка, которая позволяет запускать listener после загрузки документа #################
+// инфа по совету Владимира Епишева взята отсюда -
+// https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event
+window.addEventListener('load', () => {
+    document.getElementById('sendMessage').addEventListener('submit', submitForm);
+    console.log('The SendMessageListener has been loaded...');
+});
 
-function test() {
-    const dataToSend = JSON.stringify({"key": "asdf", "messageBody": "101010"});
+document.addEventListener('readystatechange', () => {
+    console.log(`readystate: ${document.readyState}`);
+});
 
-    //fetch("/sendMessage", {
-    fetch(CONFIG.get('SEND_MESSAGE_URL'), {
-        method: "POST",
-        body: dataToSend,
-        headers:{"content-type": "application/json"}
-    })
-        .then( (response) => {
-            if (response.status !== 200) {
-                return Promise.reject();
-            }
-            return response.text()
-        })
-        .then(i => console.log(i))
-        .catch(() => console.log('ошибка'));
-}
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('The DOMContent has been loaded...');
+});
+//#############################################################################################
 
-document.getElementById('sendMessage').addEventListener('submit', submitForm);
+// Метод-обработчик событий по нажатию кнопки "Send Message"
 function submitForm(event) {
     // Отменяем стандартное поведение браузера с отправкой формы
     event.preventDefault();
@@ -38,73 +30,28 @@ function submitForm(event) {
     // formData.forEach(($$value, $$key) => console.log("key: " + $$key + " value: " + $$value));
 
     // Собираем данные формы в объект
-    let obj = {};
+    const obj = {};
     formData.forEach((value, key) => obj[key] = value);
 
-    // Собираем запрос к серверу
-    let request = new Request(CONFIG.get('SEND_MESSAGE_URL'), {
-        method: 'POST',
-        body: JSON.stringify(obj),
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    // Отправляем (асинхронно!)
-    fetch(request)
-        //Обрабатываем ответ
-        .then(response => parseResponseAndLogAnswerMessage(response))
-        .catch(error => console.error(error));
-
-    //Alternative variant
-   /* fetch(request).then(
-        function(response) {
-            // Запрос успешно выполнен
-            parseResponseAndLogAnswerMessage(response);
-        },
-        function(error) {
-            // Запрос не получилось отправить
-            console.error(error);
-        }
-    );*/
-    // console.log('Запрос отправился успешно');
+    //Асинхронно отправляем запрос
+    sendAsyncRequest(JSON.stringify(obj));
 }
 
-//Пример взят из комментов к https://learn.javascript.ru/fetch-progress
-function parseResponseAndLogAnswerMessage(response) {
-    (async () => {
-        //let response = await fetch('https://jsonplaceholder.typicode.com/photos');
-        const reader = response.body.getReader();
+// Метод, осуществляющий асинхронную отправку сообщения
+function sendAsyncRequest(sendObject) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", CONFIGURATION.SEND_MESSAGE_URL, true);
+    xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 
-        const contentLength = +response.headers.get('Content-Length');
-
-        let receivedLength = 0;
-        let chunks = [];
-
-        while(1) {
-            const {done, value} = await reader.read();
-            if (done) {
-                break;
-            }
-
-            chunks.push(value);
-            receivedLength += value.length;
-
-            console.log(`Получено ${receivedLength} из ${contentLength}`)
+    //Добавляем обработчик событий изменения readyState запроса
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+            console.log("[Response status: [" + this.status + "]] [Answer message: [" + this.responseText + "]]");
+        } else if (xhr.readyState === XMLHttpRequest.DONE && xhr.status !== 200) {
+            console.error("[Error! Response status: [" + this.status + "]] [Answer message: [" + this.responseText + "]]");
         }
+    };
 
-        let chunksAll = new Uint8Array(receivedLength);
-        let position = 0;
-        for (let chunk of chunks) {
-            chunksAll.set(chunk, position);
-            position += chunk.length;
-        }
-
-        //Convert all chunks to String
-        let result = new TextDecoder('utf-8').decode(chunksAll);
-
-        // Realization for json
-        //let jsonResult = JSON.parse(result);
-        console.log("Answer message: "+ result);
-    })();
+    console.log("Object for send: " + sendObject);
+    xhr.send(sendObject);
 }
