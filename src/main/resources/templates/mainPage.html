@@ -32,19 +32,30 @@
             <input type="text" class="form-control" placeholder="Enter key" id="key" name="key">
             <label for="messageBody">message:</label>
             <input type="text" class="form-control" placeholder="Enter message" id="messageBody" name="messageBody">
-            <button type="submit" class="btn btn-primary">Send message</button>
+            <button type="submit" class="button button_sendMessages">Send message</button>
+        </form>
+    </div>
+
+    <div class="btn-group">
+        <button type="submit" id="reload" class="button button_reload">
+            <i>Reload and show list of received messages</i>
+        </button>
+        <form action="http://127.0.0.1:8080/flushMessages">
+            <button type="submit" class="button button_flushMessages">Flush Messages</button>
         </form>
     </div>
 
     <h2>
+        <br><br>
         <span th:text="'Messages: '"></span>
     </h2>
     <ol>
         <li th:each="message : ${messages}" th:text="${message}"></li>
     </ol>
-    <script src="/js/misc.js"></script>
+
 </main>
 <!-- /.container -->
 
 </body>
+<script src="/js/misc.js"></script>
 </html>

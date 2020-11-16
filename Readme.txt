@@ -8,3 +8,5 @@ https://spring.io/projects/spring-kafka
 Use next variables (optional):
 --spring.config.location=classpath:/default.properties
 java -Dspring.profiles.active=dev -Dspring.output.ansi.enabled=always -Dspring.application.admin.enabled=true -jar app.jar
+
+java -jar myproject.jar --spring.config.location=classpath:/app.properties

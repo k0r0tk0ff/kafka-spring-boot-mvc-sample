@@ -1,8 +1,15 @@
 package ru.k0r0tk0ff.domain;
 
+import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.NotBlank;
+
+@Validated
 public class TextMessage {
 
     private  String key;
+
+    @NotBlank(message = "MessageBody can not be empty or null!")
     private  String messageBody;
 
     public String getKey() {

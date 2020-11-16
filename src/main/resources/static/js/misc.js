@@ -8,17 +8,24 @@ const CONFIGURATION = Object.freeze({
 //##### Обертка, которая позволяет запускать listener после загрузки документа #################
 // инфа по совету Владимира Епишева взята отсюда -
 // https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event
-window.addEventListener('load', () => {
-    document.getElementById('sendMessage').addEventListener('submit', submitForm);
-    console.log('The SendMessageListener has been loaded...');
-});
-
 document.addEventListener('readystatechange', () => {
     console.log(`readystate: ${document.readyState}`);
 });
 
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('The DOMContent has been loaded...');
+
+    //Назначаем обработчик отправки сообщений после того, как документ будет подгружен
+    document.getElementById('sendMessage').addEventListener('submit', submitForm);
+    console.log('The SendMessageListener has been loaded...');
+
+    //Назначаем обработчик обновления страницы по нажатию кнопки после того, как документ будет подгружен
+    window.addEventListener("load", () => {
+        document.getElementById("reload").onclick = function() {
+            location.reload(true);
+        }
+    });
 });
 //#############################################################################################
 

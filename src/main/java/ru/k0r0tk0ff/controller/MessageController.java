@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.k0r0tk0ff.domain.TextMessage;
 import ru.k0r0tk0ff.infrastructure.service.KafkaService;
 
+import javax.validation.Valid;
+
 @RestController
 public class MessageController {
 
@@ -25,7 +27,7 @@ public class MessageController {
 
     // http://127.0.0.1:8080/sendMessage?key=KEY,message=MESSAGE
     @PostMapping(value = "/sendMessage", consumes = "application/json;charset=UTF-8")
-    public ResponseEntity<String> sendMessage(@RequestBody TextMessage textMessage) {
+    public ResponseEntity<String> sendMessage(@Valid @RequestBody TextMessage textMessage) {
 
         LOGGER.info("[Incoming message <<< [key:{}] [messageBody:{}]]", textMessage.getKey(), textMessage.getMessageBody());
         service.sendMessage(textMessage.getKey(), textMessage.getMessageBody());

@@ -19,6 +19,7 @@ import java.util.List;
 public class KafkaService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(KafkaService.class);
+
     private List<TextMessage> messageList;
     private KafkaTemplate<String, String> kafkaTemplate;
 
@@ -34,10 +35,13 @@ public class KafkaService {
     }
 
     public List<TextMessage> getMessages() {
+
         return this.messageList;
     }
+
     public void flushMessages() {
-        this.messageList = new ArrayList<>();
+
+        this.messageList.clear();
     }
 
     @KafkaListener(topics = "test", groupId = "myGroup")
@@ -46,7 +50,7 @@ public class KafkaService {
                 record.offset(),
                 record.key(),
                 record.value());
-        messageList.add(new TextMessage.Builder()
+        this.messageList.add(new TextMessage.Builder()
                 .withKey(record.key())
                 .withMessageBody(record.value())
                 .build());
